@@ -15,6 +15,7 @@ describe("tsconfig-loader", () => {
           tsConfigPath: `${cwd}/tsconfig.json`,
           baseUrl: "./",
           paths: {},
+          moduleSuffixes: [],
         };
       },
     });
@@ -31,6 +32,7 @@ describe("tsconfig-loader", () => {
           tsConfigPath: undefined,
           baseUrl: "./",
           paths: {},
+          moduleSuffixes: [],
         };
       },
     });
@@ -49,6 +51,7 @@ describe("tsconfig-loader", () => {
             tsConfigPath: "/foo/baz/tsconfig.json",
             baseUrl: "./",
             paths: {},
+            moduleSuffixes: [],
           };
         }
 
@@ -56,6 +59,7 @@ describe("tsconfig-loader", () => {
           tsConfigPath: undefined,
           baseUrl: "./",
           paths: {},
+          moduleSuffixes: [],
         };
       },
     });
@@ -73,6 +77,7 @@ describe("tsconfig-loader", () => {
           tsConfigPath: undefined,
           baseUrl,
           paths: {},
+          moduleSuffixes: [],
         };
       },
     });
@@ -91,6 +96,7 @@ describe("tsconfig-loader", () => {
           tsConfigPath: undefined,
           baseUrl,
           paths: {},
+          moduleSuffixes: [],
         };
       },
     });
@@ -224,13 +230,18 @@ describe("loadConfig", () => {
   it("It should load a config with extends and overwrite all options", () => {
     const firstConfig = {
       extends: "../base-config.json",
-      compilerOptions: { baseUrl: "kalle", paths: { foo: ["bar2"] } },
+      compilerOptions: {
+        baseUrl: "kalle",
+        paths: { foo: ["bar2"] },
+        moduleSuffixes: [".baz", ""],
+      },
     };
     const firstConfigPath = join("/root", "dir1", "tsconfig.json");
     const baseConfig = {
       compilerOptions: {
         baseUrl: "olle",
         paths: { foo: ["bar1"] },
+        moduleSuffixes: [".bar", ""],
         strict: true,
       },
     };
@@ -254,6 +265,7 @@ describe("loadConfig", () => {
       compilerOptions: {
         baseUrl: "kalle",
         paths: { foo: ["bar2"] },
+        moduleSuffixes: [".baz", ""],
         strict: true,
       },
     });
@@ -262,13 +274,18 @@ describe("loadConfig", () => {
   it("It should load a config with extends from node_modules and overwrite all options", () => {
     const firstConfig = {
       extends: "my-package/base-config.json",
-      compilerOptions: { baseUrl: "kalle", paths: { foo: ["bar2"] } },
+      compilerOptions: {
+        baseUrl: "kalle",
+        paths: { foo: ["bar2"] },
+        moduleSuffixes: [".baz", ""],
+      },
     };
     const firstConfigPath = join("/root", "dir1", "tsconfig.json");
     const baseConfig = {
       compilerOptions: {
         baseUrl: "olle",
         paths: { foo: ["bar1"] },
+        moduleSuffixes: [".bar", ""],
         strict: true,
       },
     };
@@ -298,6 +315,7 @@ describe("loadConfig", () => {
       compilerOptions: {
         baseUrl: "kalle",
         paths: { foo: ["bar2"] },
+        moduleSuffixes: [".baz", ""],
         strict: true,
       },
     });

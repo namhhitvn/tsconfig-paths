@@ -101,6 +101,7 @@ const baseUrl = "./"; // Either absolute or relative path. If relative it's reso
 const cleanup = tsConfigPaths.register({
   baseUrl,
   paths: tsConfig.compilerOptions.paths,
+  moduleSuffixes: tsConfig.compilerOptions.moduleSuffixes,
 });
 
 // When path registration is no longer needed
@@ -146,6 +147,7 @@ The public API consists of these functions:
 export interface ExplicitParams {
   baseUrl: string;
   paths: { [key: string]: Array<string> };
+  moduleSuffixes: string[];
   mainFields?: (string | string[])[];
   addMatchAll?: boolean;
   cwd?: string;
@@ -173,6 +175,7 @@ export interface ConfigLoaderSuccessResult {
   resultType: "success";
   absoluteBaseUrl: string;
   paths: { [key: string]: Array<string> };
+  moduleSuffixes: string[];
 }
 
 export interface ConfigLoaderFailResult {
@@ -192,6 +195,7 @@ This function loads the `tsconfig.json` or `jsconfig.json`. It will start search
 export interface MatchPath {
   (
     requestedModule: string,
+    requestedModuleParent: TryPath.RequestModuleParent,
     readJson?: Filesystem.ReadJsonSync,
     fileExists?: (name: string) => boolean,
     extensions?: ReadonlyArray<string>
@@ -202,6 +206,7 @@ export interface MatchPath {
  * Creates a function that can resolve paths according to tsconfig paths property.
  * @param absoluteBaseUrl Absolute version of baseUrl as specified in tsconfig.
  * @param paths The paths as specified in tsconfig.
+ * @param moduleSuffixes The module suffixes.
  * @param mainFields A list of package.json field names to try when resolving module files. Select a nested field using an array of field names.
  * @param addMatchAll Add a match-all "*" rule if none is present
  * @returns a function that can resolve paths.
@@ -209,6 +214,7 @@ export interface MatchPath {
 export function createMatchPath(
   absoluteBaseUrl: string,
   paths: { [key: string]: Array<string> },
+  moduleSuffixes: string[],
   mainFields: (string | string[])[] = ["main"],
   addMatchAll: boolean = true
 ): MatchPath {
@@ -223,6 +229,8 @@ The `createMatchPath` function will create a function that can match paths. It a
  * Finds a path from tsconfig that matches a module load request.
  * @param absolutePathMappings The paths to try as specified in tsconfig but resolved to absolute form.
  * @param requestedModule The required module name.
+ * @param requestedModuleParent The required module parent.
+ * @param moduleSuffixes The module suffixes.
  * @param readJson Function that can read json from a path (useful for testing).
  * @param fileExists Function that checks for existence of a file at a path (useful for testing).
  * @param extensions File extensions to probe for (useful for testing).
@@ -232,6 +240,8 @@ The `createMatchPath` function will create a function that can match paths. It a
 export function matchFromAbsolutePaths(
   absolutePathMappings: ReadonlyArray<MappingEntry.MappingEntry>,
   requestedModule: string,
+  requestedModuleParent: TryPath.RequestModuleParent,
+  moduleSuffixes: string[],
   readJson: Filesystem.ReadJsonSync = Filesystem.readJsonFromDiskSync,
   fileExists: Filesystem.FileExistsSync = Filesystem.fileExistsSync,
   extensions: Array<string> = Object.keys(require.extensions),

@@ -14,6 +14,7 @@ describe("config-loader", (): void => {
         paths: {
           asd: ["asd"],
         },
+        moduleSuffixes: [".baz", ""],
       },
       cwd: "/baz",
     });
@@ -22,6 +23,8 @@ describe("config-loader", (): void => {
     expect(successResult.resultType).toBe("success");
     expect(successResult.absoluteBaseUrl).toBe("/foo/bar");
     expect(successResult.paths["asd"][0]).toBe("asd");
+    expect(successResult.moduleSuffixes[0]).toBe(".baz");
+    expect(successResult.moduleSuffixes[1]).toBe("");
   });
 
   it("should use explicitParams when set and add cwd when path is relative", () => {
@@ -31,6 +34,7 @@ describe("config-loader", (): void => {
         paths: {
           asd: ["asd"],
         },
+        moduleSuffixes: [],
       },
       cwd: "/baz",
     });
@@ -48,6 +52,7 @@ describe("config-loader", (): void => {
         tsConfigPath: "/baz/tsconfig.json",
         baseUrl: "./src",
         paths: {},
+        moduleSuffixes: [],
       }),
     });
 
@@ -64,6 +69,7 @@ describe("config-loader", (): void => {
         tsConfigPath: "/baz/tsconfig.json",
         baseUrl: undefined,
         paths: {},
+        moduleSuffixes: [],
       }),
     });
 
@@ -92,6 +98,7 @@ describe("config-loader", (): void => {
         tsConfigPath: "/baz/tsconfig.json",
         baseUrl: "/baz",
         paths: {},
+        moduleSuffixes: [],
       }),
     });
 

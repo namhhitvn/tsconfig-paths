@@ -1,5 +1,6 @@
 import { createMatchPath } from "./match-path-sync";
 import { configLoader, ExplicitParams } from "./config-loader";
+import { RequestModuleParent } from "./try-path";
 
 const noOp = (): void => void 0;
 
@@ -92,6 +93,7 @@ export function register(params?: RegisterParams): () => void {
   const matchPath = createMatchPath(
     configLoaderResult.absoluteBaseUrl,
     configLoaderResult.paths,
+    configLoaderResult.moduleSuffixes,
     configLoaderResult.mainFields,
     configLoaderResult.addMatchAll
   );
@@ -103,10 +105,13 @@ export function register(params?: RegisterParams): () => void {
   const originalResolveFilename = Module._resolveFilename;
   const coreModules = getCoreModules(Module.builtinModules);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any,no-underscore-dangle
-  Module._resolveFilename = function (request: string, _parent: any): string {
+  Module._resolveFilename = function (
+    request: string,
+    requestedParent: RequestModuleParent
+  ): string {
     const isCoreModule = coreModules.hasOwnProperty(request);
     if (!isCoreModule) {
-      const found = matchPath(request);
+      const found = matchPath(request, requestedParent);
       if (found) {
         const modifiedArguments = [found, ...[].slice.call(arguments, 1)]; // Passes all arguments. Even those that is not specified above.
         return originalResolveFilename.apply(this, modifiedArguments);

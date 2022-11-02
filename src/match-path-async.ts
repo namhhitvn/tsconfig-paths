@@ -9,6 +9,7 @@ import * as Filesystem from "./filesystem";
 export interface MatchPathAsync {
   (
     requestedModule: string,
+    requestedModuleParent: TryPath.RequestModuleParent,
     readJson: Filesystem.ReadJsonAsync | undefined,
     fileExists: Filesystem.FileExistsAsync | undefined,
     extensions: ReadonlyArray<string> | undefined,
@@ -27,6 +28,7 @@ export interface MatchPathAsyncCallback {
 export function createMatchPathAsync(
   absoluteBaseUrl: string,
   paths: { [key: string]: Array<string> },
+  moduleSuffixes: string[],
   mainFields: (string | string[])[] = ["main"],
   addMatchAll: boolean = true
 ): MatchPathAsync {
@@ -38,6 +40,7 @@ export function createMatchPathAsync(
 
   return (
     requestedModule: string,
+    requestedModuleParent: TryPath.RequestModuleParent,
     readJson: Filesystem.ReadJsonAsync | undefined,
     fileExists: Filesystem.FileExistsAsync | undefined,
     extensions: ReadonlyArray<string> | undefined,
@@ -46,6 +49,8 @@ export function createMatchPathAsync(
     matchFromAbsolutePathsAsync(
       absolutePaths,
       requestedModule,
+      requestedModuleParent,
+      moduleSuffixes,
       readJson,
       fileExists,
       extensions,
@@ -60,6 +65,8 @@ export function createMatchPathAsync(
 export function matchFromAbsolutePathsAsync(
   absolutePathMappings: ReadonlyArray<MappingEntry.MappingEntry>,
   requestedModule: string,
+  requestedModuleParent: TryPath.RequestModuleParent,
+  moduleSuffixes: string[],
   readJson: Filesystem.ReadJsonAsync = Filesystem.readJsonFromDiskAsync,
   fileExists: Filesystem.FileExistsAsync = Filesystem.fileExistsAsync,
   extensions: ReadonlyArray<string> = Object.keys(require.extensions),
@@ -69,7 +76,9 @@ export function matchFromAbsolutePathsAsync(
   const tryPaths = TryPath.getPathsToTry(
     extensions,
     absolutePathMappings,
-    requestedModule
+    requestedModule,
+    requestedModuleParent,
+    moduleSuffixes
   );
 
   if (!tryPaths) {

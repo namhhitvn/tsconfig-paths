@@ -7,11 +7,13 @@ describe("match-path-async", () => {
       const matchPath = createMatchPathAsync(
         t.absoluteBaseUrl,
         t.paths,
+        t.moduleSuffixes,
         t.mainFields,
         t.addMatchAll
       );
       matchPath(
         t.requestedModule,
+        t.requestedModuleParent,
         (_path, callback) => callback(undefined, t.packageJson),
         (path, callback) =>
           callback(undefined, t.existingFiles.indexOf(path) !== -1),

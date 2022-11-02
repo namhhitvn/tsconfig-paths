@@ -1,12 +1,12 @@
 {
-  "name": "tsconfig-paths",
+  "name": "tsconfig-paths-with-module-suffixes",
   "version": "4.1.0",
   "description": "Load node modules according to tsconfig paths, in run-time or via API.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "author": "Jonas Kello",
+  "author": "Nam Hoang",
   "license": "MIT",
-  "repository": "https://github.com/dividab/tsconfig-paths",
+  "repository": "https://github.com/namhhitvn/tsconfig-paths-with-module-suffixes",
   "files": [
     "/src",
     "/lib",
@@ -46,6 +46,7 @@
     "strip-bom": "^3.0.0"
   },
   "scripts": {
+    "prepare": "yarn build",
     "start": "cd src && ts-node index.ts",
     "example:node": "yarn build && cd ./example/node && ts-node -r ../../register.js main.ts",
     "example:project": "yarn build && ts-node -r ./register.js -P ./example/project/tsconfig.json ./example/project/main.ts",

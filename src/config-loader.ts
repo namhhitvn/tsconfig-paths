@@ -3,6 +3,7 @@ import * as path from "path";
 
 export interface ExplicitParams {
   baseUrl: string;
+  moduleSuffixes: string[];
   paths: { [key: string]: Array<string> };
   mainFields?: (string | string[])[];
   addMatchAll?: boolean;
@@ -23,6 +24,7 @@ export interface ConfigLoaderSuccessResult {
   configFileAbsolutePath: string;
   baseUrl?: string;
   absoluteBaseUrl: string;
+  moduleSuffixes: string[];
   paths: { [key: string]: Array<string> };
   mainFields?: (string | string[])[];
   addMatchAll?: boolean;
@@ -56,6 +58,7 @@ export function configLoader({
       configFileAbsolutePath: "",
       baseUrl: explicitParams.baseUrl,
       absoluteBaseUrl,
+      moduleSuffixes: explicitParams.moduleSuffixes,
       paths: explicitParams.paths,
       mainFields: explicitParams.mainFields,
       addMatchAll: explicitParams.addMatchAll,
@@ -83,6 +86,7 @@ export function configLoader({
       path.dirname(loadResult.tsConfigPath),
       loadResult.baseUrl || ""
     ),
+    moduleSuffixes: loadResult.moduleSuffixes,
     paths: loadResult.paths || {},
     addMatchAll: loadResult.baseUrl !== undefined,
   };

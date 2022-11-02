@@ -7,11 +7,13 @@ describe("match-path-sync", () => {
       const matchPath = createMatchPath(
         t.absoluteBaseUrl,
         t.paths,
+        t.moduleSuffixes,
         t.mainFields,
         t.addMatchAll
       );
       const result = matchPath(
         t.requestedModule,
+        t.requestedModuleParent,
         (_: string) => t.packageJson,
         (name: string) => t.existingFiles.indexOf(name) !== -1,
         t.extensions

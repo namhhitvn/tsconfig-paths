@@ -12,6 +12,7 @@ export interface Tsconfig {
   extends?: string;
   compilerOptions?: {
     baseUrl?: string;
+    moduleSuffixes?: string[];
     paths?: { [key: string]: Array<string> };
     strict?: boolean;
   };
@@ -20,6 +21,7 @@ export interface Tsconfig {
 export interface TsConfigLoaderResult {
   tsConfigPath: string | undefined;
   baseUrl: string | undefined;
+  moduleSuffixes: string[];
   paths: { [key: string]: Array<string> } | undefined;
 }
 
@@ -60,6 +62,7 @@ function loadSyncDefault(
     return {
       tsConfigPath: undefined,
       baseUrl: undefined,
+      moduleSuffixes: [],
       paths: undefined,
     };
   }
@@ -70,6 +73,12 @@ function loadSyncDefault(
     baseUrl:
       baseUrl ||
       (config && config.compilerOptions && config.compilerOptions.baseUrl),
+    moduleSuffixes: (
+      (config &&
+        config.compilerOptions &&
+        config.compilerOptions.moduleSuffixes) ||
+      []
+    ).filter(Boolean),
     paths: config && config.compilerOptions && config.compilerOptions.paths,
   };
 }

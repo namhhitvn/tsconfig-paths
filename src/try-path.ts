@@ -6,7 +6,15 @@ import { removeExtension } from "./filesystem";
 export interface TryPath {
   readonly type: "file" | "extension" | "index" | "package";
   readonly path: string;
+  readonly isModuleSuffixes?: boolean;
 }
+
+export type RequestModuleParent =
+  | string
+  | {
+      path: string;
+    }
+  | undefined;
 
 /**
  * Builds a list of all physical paths to try by:
@@ -18,13 +26,37 @@ export interface TryPath {
 export function getPathsToTry(
   extensions: ReadonlyArray<string>,
   absolutePathMappings: ReadonlyArray<MappingEntry>,
-  requestedModule: string
+  requestedModule: string,
+  requestedModuleParent: RequestModuleParent,
+  moduleSuffixes: string[]
 ): ReadonlyArray<TryPath> | undefined {
-  if (!absolutePathMappings || !requestedModule || requestedModule[0] === ".") {
+  const pathsToTry: Array<TryPath> = [];
+  const isNotValidToResolvePath =
+    !absolutePathMappings ||
+    !absolutePathMappings.length ||
+    !requestedModule ||
+    requestedModule[0] === ".";
+
+  if (moduleSuffixes.length) {
+    const parentPath =
+      typeof requestedModuleParent === "string"
+        ? requestedModuleParent
+        : requestedModuleParent?.path;
+    moduleSuffixes = moduleSuffixes.filter(Boolean);
+
+    if (isNotValidToResolvePath && parentPath) {
+      const physicalPath = path.resolve(parentPath, requestedModule);
+      pathsToTry.push(
+        ...getTryPaths(physicalPath, extensions, moduleSuffixes, true)
+      );
+      return pathsToTry;
+    }
+  }
+
+  if (isNotValidToResolvePath) {
     return undefined;
   }
 
-  const pathsToTry: Array<TryPath> = [];
   for (const entry of absolutePathMappings) {
     const starMatch =
       entry.pattern === requestedModule
@@ -33,21 +65,8 @@ export function getPathsToTry(
     if (starMatch !== undefined) {
       for (const physicalPathPattern of entry.paths) {
         const physicalPath = physicalPathPattern.replace("*", starMatch);
-        pathsToTry.push({ type: "file", path: physicalPath });
         pathsToTry.push(
-          ...extensions.map(
-            (e) => ({ type: "extension", path: physicalPath + e } as TryPath)
-          )
-        );
-        pathsToTry.push({
-          type: "package",
-          path: path.join(physicalPath, "/package.json"),
-        });
-        const indexPath = path.join(physicalPath, "/index");
-        pathsToTry.push(
-          ...extensions.map(
-            (e) => ({ type: "index", path: indexPath + e } as TryPath)
-          )
+          ...getTryPaths(physicalPath, extensions, moduleSuffixes)
         );
       }
     }
@@ -55,9 +74,84 @@ export function getPathsToTry(
   return pathsToTry.length === 0 ? undefined : pathsToTry;
 }
 
+function getTryPaths(
+  physicalPath: string,
+  extensions: ReadonlyArray<string>,
+  moduleSuffixes: string[],
+  onlyModuleSuffixes: boolean = false
+): Array<TryPath> {
+  const pathsToTry: Array<TryPath> = [];
+
+  pathsToTry.push(
+    ...[
+      ...moduleSuffixes.map(
+        (m) =>
+          ({
+            type: "file",
+            path: physicalPath + m,
+            isModuleSuffixes: true,
+          } as TryPath)
+      ),
+      { type: "file", path: physicalPath } as TryPath,
+    ]
+  );
+
+  if (!onlyModuleSuffixes) {
+    pathsToTry.push({
+      type: "package",
+      path: path.join(physicalPath, "/package.json"),
+    });
+  }
+
+  pathsToTry.push(
+    ...moduleSuffixes.reduce(
+      (arr, m) => [
+        ...arr,
+        ...extensions.map(
+          (e) =>
+            ({
+              type: "extension",
+              path: physicalPath + m + e,
+              isModuleSuffixes: true,
+            } as TryPath)
+        ),
+      ],
+      [] as TryPath[]
+    ),
+    ...extensions.map(
+      (e) => ({ type: "extension", path: physicalPath + e } as TryPath)
+    )
+  );
+
+  const indexPath = path.join(physicalPath, "/index");
+  pathsToTry.push(
+    ...moduleSuffixes.reduce(
+      (arr, m) => [
+        ...arr,
+        ...extensions.map(
+          (e) =>
+            ({
+              type: "index",
+              path: indexPath + m + e,
+              isModuleSuffixes: true,
+            } as TryPath)
+        ),
+      ],
+      [] as TryPath[]
+    ),
+    ...extensions.map(
+      (e) => ({ type: "index", path: indexPath + e } as TryPath)
+    )
+  );
+
+  return pathsToTry;
+}
+
 // Not sure why we don't just return the full found path?
 export function getStrippedPath(tryPath: TryPath): string {
-  return tryPath.type === "index"
+  return tryPath.isModuleSuffixes && tryPath.type === "index"
+    ? removeExtension(tryPath.path)
+    : tryPath.type === "index"
     ? dirname(tryPath.path)
     : tryPath.type === "file"
     ? tryPath.path

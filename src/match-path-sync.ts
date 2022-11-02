@@ -9,6 +9,7 @@ import * as TryPath from "./try-path";
 export interface MatchPath {
   (
     requestedModule: string,
+    requestedModuleParent: TryPath.RequestModuleParent,
     readJson?: Filesystem.ReadJsonSync,
     fileExists?: (name: string) => boolean,
     extensions?: ReadonlyArray<string>
@@ -27,6 +28,7 @@ export interface MatchPath {
 export function createMatchPath(
   absoluteBaseUrl: string,
   paths: { [key: string]: Array<string> },
+  moduleSuffixes: string[],
   mainFields: (string | string[])[] = ["main"],
   addMatchAll: boolean = true
 ): MatchPath {
@@ -38,6 +40,7 @@ export function createMatchPath(
 
   return (
     requestedModule: string,
+    requestedModuleParent: TryPath.RequestModuleParent,
     readJson?: Filesystem.ReadJsonSync,
     fileExists?: Filesystem.FileExistsSync,
     extensions?: Array<string>
@@ -45,6 +48,8 @@ export function createMatchPath(
     matchFromAbsolutePaths(
       absolutePaths,
       requestedModule,
+      requestedModuleParent,
+      moduleSuffixes,
       readJson,
       fileExists,
       extensions,
@@ -66,6 +71,8 @@ export function createMatchPath(
 export function matchFromAbsolutePaths(
   absolutePathMappings: ReadonlyArray<MappingEntry.MappingEntry>,
   requestedModule: string,
+  requestedModuleParent: TryPath.RequestModuleParent,
+  moduleSuffixes: string[],
   readJson: Filesystem.ReadJsonSync = Filesystem.readJsonFromDiskSync,
   fileExists: Filesystem.FileExistsSync = Filesystem.fileExistsSync,
   extensions: Array<string> = Object.keys(require.extensions),
@@ -74,7 +81,9 @@ export function matchFromAbsolutePaths(
   const tryPaths = TryPath.getPathsToTry(
     extensions,
     absolutePathMappings,
-    requestedModule
+    requestedModule,
+    requestedModuleParent,
+    moduleSuffixes
   );
 
   if (!tryPaths) {
